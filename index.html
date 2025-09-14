@@ -2,13 +2,19 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Подковать лошадь - 8-битная игра со звуком</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         body {
@@ -22,13 +28,15 @@
             overflow: hidden;
             background-image: linear-gradient(to bottom, #6b8cff, #3d60c1);
             padding: 10px;
+            touch-action: manipulation;
         }
         
         #game-container {
             position: relative;
             width: 100%;
             max-width: 800px;
-            height: 600px;
+            height: 100vh;
+            max-height: 600px;
             image-rendering: pixelated;
             border: 4px solid #3d3d3d;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
@@ -122,6 +130,19 @@
             display: none;
         }
         
+        #giraffe-indicator {
+            position: absolute;
+            top: 210px;
+            left: 10px;
+            font-size: 12px;
+            text-shadow: 2px 2px 0 #000;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 8px;
+            border: 2px solid #ff9900;
+            display: none;
+        }
+        
         #level-indicator {
             position: absolute;
             top: 10px;
@@ -136,7 +157,23 @@
             text-align: center;
         }
         
-        #start-screen, #game-over, #level-select, #pause-screen {
+        #orientation-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        #start-screen, #game-over, #level-select, #pause-screen, #splash-screen {
             position: absolute;
             top: 0;
             left: 0;
@@ -150,6 +187,104 @@
             z-index: 20;
             text-align: center;
             padding: 20px;
+        }
+        
+        #splash-screen {
+            background: linear-gradient(135deg, #6b8cff 0%, #3d60c1 100%);
+            z-index: 30;
+        }
+        
+        .splash-animation {
+            position: absolute;
+            font-size: 24px;
+            animation: float 3s infinite ease-in-out;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .splash-title {
+            font-size: 36px;
+            color: #ffd700;
+            text-shadow: 4px 4px 0 #000, 0 0 10px #ff6b00;
+            margin-bottom: 30px;
+            animation: bounce 2s infinite;
+        }
+        
+        .splash-subtitle {
+            font-size: 18px;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            margin-bottom: 40px;
+        }
+        
+        .splash-animals {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .animal-emoji {
+            font-size: 40px;
+            animation: float 3s infinite ease-in-out;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .splash-tools {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .tool-emoji {
+            font-size: 30px;
+            animation: rotate 4s infinite linear;
+            text-shadow: 2px 2px 0 #000;
+        }
+        
+        .start-button {
+            background: linear-gradient(45deg, #ff6b6b, #ffd700);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-family: 'Press Start 2P', cursive;
+            margin-top: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #d44, 0 0 20px rgba(255, 107, 107, 0.5);
+            border-radius: 10px;
+            animation: pulse 1.5s infinite;
+            transition: all 0.3s;
+        }
+        
+        .start-button:hover {
+            transform: translateY(2px);
+            box-shadow: 0 6px 0 #d44, 0 0 25px rgba(255, 107, 107, 0.7);
+        }
+        
+        .start-button:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #d44, 0 0 15px rgba(255, 107, 107, 0.6);
         }
         
         h1 {
@@ -204,6 +339,16 @@
             font-size: 20px;
             color: #ffd700;
             margin: 15px 0;
+        }
+        
+        .share-btn {
+            background: linear-gradient(45deg, #4caf50, #2196f3);
+            box-shadow: 0 6px 0 #2e7d32, 0 0 10px rgba(33, 150, 243, 0.5);
+        }
+        
+        .share-btn:hover {
+            background: linear-gradient(45deg, #66bb6a, #42a5f5);
+            box-shadow: 0 4px 0 #2e7d32, 0 0 15px rgba(33, 150, 243, 0.7);
         }
         
         .horseshoe-icon {
@@ -306,14 +451,51 @@
             to { transform: translateY(0px); }
         }
         
+        @keyframes giraffe-neck {
+            0% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-10px) rotate(5deg); }
+            50% { transform: translateY(0px) rotate(0deg); }
+            75% { transform: translateY(5px) rotate(-5deg); }
+            to { transform: translateY(0px) rotate(0deg); }
+        }
+        
         .crazy-horse {
             animation: crazy-horse 0.5s infinite;
         }
         
+        .giraffe-neck {
+            animation: giraffe-neck 1s infinite;
+        }
+        
         /* Адаптивность для мобильных устройств */
-        @media (max-width: 768px) {
+        @media (max-width: 768px), (max-height: 500px) {
             #game-container {
-                height: 500px;
+                height: 100vh;
+                max-height: 100vh;
+                width: 100vw;
+                max-width: 100vw;
+                border: none;
+            }
+            
+            .splash-title {
+                font-size: 24px;
+            }
+            
+            .splash-subtitle {
+                font-size: 14px;
+            }
+            
+            .animal-emoji {
+                font-size: 30px;
+            }
+            
+            .tool-emoji {
+                font-size: 24px;
+            }
+            
+            .start-button {
+                padding: 12px 30px;
+                font-size: 16px;
             }
             
             h1 {
@@ -350,11 +532,50 @@
             .mobile-controls {
                 display: flex;
             }
+            
+            /* Для вертикальной ориентации */
+            @media (orientation: portrait) {
+                #orientation-warning {
+                    display: flex;
+                }
+                
+                #game-container {
+                    display: none;
+                }
+            }
+            
+            /* Для горизонтальной ориентации */
+            @media (orientation: landscape) {
+                #orientation-warning {
+                    display: none;
+                }
+                
+                #game-container {
+                    display: block;
+                }
+            }
         }
         
         @media (max-width: 480px) {
-            #game-container {
-                height: 400px;
+            .splash-title {
+                font-size: 20px;
+            }
+            
+            .splash-subtitle {
+                font-size: 12px;
+            }
+            
+            .animal-emoji {
+                font-size: 24px;
+            }
+            
+            .tool-emoji {
+                font-size: 20px;
+            }
+            
+            .start-button {
+                padding: 10px 25px;
+                font-size: 14px;
             }
             
             h1 {
@@ -399,13 +620,46 @@
                 font-size: 10px;
                 padding: 5px;
             }
+            
+            #special-horse-indicator,
+            #dark-horse-indicator,
+            #giraffe-indicator {
+                font-size: 10px;
+                padding: 5px;
+            }
+        }
+        
+        /* Специальные стили для iOS */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+            
+            #game-container {
+                height: -webkit-fill-available;
+                max-height: -webkit-fill-available;
+            }
+        }
+        
+        /* Специальные стили для Android */
+        @media (-android) {
+            body {
+                padding: 5px;
+            }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div id="orientation-warning">
+        <h1>🔄 ПОВЕРНИТЕ УСТРОЙСТВО</h1>
+        <div id="instructions">
+            Для игры поверните телефон в горизонтальное положение (альбомная ориентация)
+        </div>
+    </div>
+
     <div id="game-container">
-        <canvas id="game-canvas" width="800" height="600"></canvas>
+        <canvas id="game-canvas"></canvas>
         
         <div id="ui">
             <div id="score-display">Подковано: 0</div>
@@ -422,6 +676,10 @@
         
         <div id="dark-horse-indicator">
             ⚫ ТЕМНАЯ ЛОШАДЬ! -10сек!
+        </div>
+        
+        <div id="giraffe-indicator">
+            🦒 ВЕСЕЛЫЙ ЖИРАФ! -3сек!
         </div>
         
         <div id="controls">
@@ -443,15 +701,46 @@
             <div><span class="horseshoe-icon magic"></span> Магическая: +5, +5 сек</div>
             <div style="color: #ff00ff; margin-top: 5px;">🤪 Смешная: +10 сек!</div>
             <div style="color: #ff0000; margin-top: 5px;">⚫ Тёмная: -10 сек!</div>
+            <div style="color: #ff9900; margin-top: 5px;">🦒 Жираф: -3 сек!</div>
         </div>
         
-        <div id="start-screen">
+        <div id="splash-screen">
+            <div class="splash-title">🐎 ПОДКОВАТЬ ЛОШАДЬ 🐎</div>
+            <div class="splash-subtitle">Весёлая фермерская аркада!</div>
+            
+            <div class="splash-animals">
+                <div class="animal-emoji" style="animation-delay: 0s;">🐴</div>
+                <div class="animal-emoji" style="animation-delay: 0.5s;">🐎</div>
+                <div class="animal-emoji" style="animation-delay: 1s;">🦒</div>
+                <div class="animal-emoji" style="animation-delay: 1.5s;">🐄</div>
+                <div class="animal-emoji" style="animation-delay: 2s;">🐖</div>
+            </div>
+            
+            <div class="splash-tools">
+                <div class="tool-emoji" style="animation-duration: 3s;">🔨</div>
+                <div class="tool-emoji" style="animation-duration: 5s; animation-delay: 1s;">💉</div>
+                <div class="tool-emoji" style="animation-duration: 4s; animation-delay: 2s;">🩺</div>
+                <div class="tool-emoji" style="animation-duration: 6s; animation-delay: 0.5s;">💊</div>
+                <div class="tool-emoji" style="animation-duration: 7s; animation-delay: 1.5s;">🐾</div>
+            </div>
+            
+            <div class="splash-tools">
+                <div class="tool-emoji" style="animation: rotate 8s infinite linear;">🧲</div>
+                <div class="tool-emoji" style="animation: float 4s infinite ease-in-out;">🔧</div>
+                <div class="tool-emoji" style="animation: rotate 6s infinite reverse linear;">⚙️</div>
+            </div>
+            
+            <button class="start-button" id="splash-start-button">🎮 НАЧАТЬ ИГРУ!</button>
+        </div>
+        
+        <div id="start-screen" class="hidden">
             <h1>ПОДКОВАТЬ ЛОШАДЬ</h1>
             <div id="instructions">
-                Кликай на лошадей, чтобы подковать их!<br>
+                Кликай на животных, чтобы подковать их!<br>
                 Используй разные типы подков для бонусов.<br>
                 Следи за СМЕШНОЙ ЛОШАДЬЮ - она бежит назад!<br>
                 Осторожно с ТЁМНОЙ ЛОШАДЬЮ - забирает время!<br>
+                🦒 ВЕСЕЛЫЙ ЖИРАФ тоже отнимает время!<br>
                 Заработай как можно больше очков за 30 секунд!
             </div>
             <button id="start-button">ВЫБРАТЬ УРОВЕНЬ</button>
@@ -478,9 +767,15 @@
         
         <div id="game-over" class="hidden">
             <h1>ИГРА ОКОНЧЕНА</h1>
-            <div id="final-score">Вы подковали: 0 лошадей</div>
-            <button id="restart-button">ИГРАТЬ СНОВА</button>
-            <button id="exit-btn-end" class="exit-btn">ВЫХОД</button>
+            <div id="final-score">Вы подковали: 0 животных</div>
+            <div id="final-time">Осталось времени: 0 сек</div>
+            
+            <div class="buttons-container">
+                <button id="restart-button">ИГРАТЬ СНОВА</button>
+                <button id="share-btn" class="share-btn">📤 ПОДЕЛИТЬСЯ</button>
+                <button id="exit-btn-end" class="exit-btn">ВЫХОД</button>
+            </div>
+            
             <a class="calendar-link" href="https://vgau.edu37.ru/calendar/" target="_blank">📅 Календарь обучения ветеринарии</a>
         </div>
     </div>
@@ -489,20 +784,25 @@
         // Инициализация игры
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
+        const splashScreen = document.getElementById('splash-screen');
         const startScreen = document.getElementById('start-screen');
         const levelSelectScreen = document.getElementById('level-select');
         const gameOverScreen = document.getElementById('game-over');
         const pauseScreen = document.getElementById('pause-screen');
+        const orientationWarning = document.getElementById('orientation-warning');
+        const splashStartButton = document.getElementById('splash-start-button');
         const startButton = document.getElementById('start-button');
         const easyLevelButton = document.getElementById('easy-level');
         const hardLevelButton = document.getElementById('hard-level');
         const backToMenuButton = document.getElementById('back-to-menu');
         const restartButton = document.getElementById('restart-button');
+        const shareBtn = document.getElementById('share-btn');
         const pauseBtn = document.getElementById('pause-btn');
         const resumeBtn = document.getElementById('resume-btn');
         const scoreDisplay = document.getElementById('score-display');
         const timerDisplay = document.getElementById('timer-display');
         const finalScoreDisplay = document.getElementById('final-score');
+        const finalTimeDisplay = document.getElementById('final-time');
         const soundToggleBtn = document.getElementById('sound-toggle');
         const musicToggleBtn = document.getElementById('music-toggle');
         const exitBtn = document.getElementById('exit-btn');
@@ -512,6 +812,7 @@
         const exitBtnEnd = document.getElementById('exit-btn-end');
         const specialHorseIndicator = document.getElementById('special-horse-indicator');
         const darkHorseIndicator = document.getElementById('dark-horse-indicator');
+        const giraffeIndicator = document.getElementById('giraffe-indicator');
         const currentLevelDisplay = document.getElementById('current-level');
         const mobileTapBtn = document.getElementById('mobile-tap');
         
@@ -522,38 +823,43 @@
         let gamePaused = false;
         let gameTimer;
         let horseSpawnInterval;
-        let horses = [];
+        let animals = [];
         let activeHorseshoes = [];
         let score = 0;
         let timeLeft = 30;
         let specialHorseActive = false;
         let darkHorseActive = false;
+        let giraffeActive = false;
         let specialHorseTimer = 0;
         let darkHorseTimer = 0;
+        let giraffeTimer = 0;
         let currentLevel = 1;
+        let finalTime = 0;
         
         // Размеры canvas
         let canvasWidth = 800;
         let canvasHeight = 600;
-        const groundLevel = canvasHeight * 0.7; // Уровень земли (70% высоты экрана)
+        let groundLevel = canvasHeight * 0.7;
         
-        // Типы подков с бонусами (разные для уровней)
+        // Типы подков с бонусами
         const horseshoesEasy = {
             'bronze': { points: 1, time: 0, color: '#cd7f32', border: '#a56c2a', probability: 0.5 },
             'silver': { points: 2, time: 1, color: '#c0c0c0', border: '#a0a0a0', probability: 0.35 },
             'gold': { points: 3, time: 3, color: '#ffd700', border: '#d4af37', probability: 0.12 },
             'magic': { points: 5, time: 5, color: 'magenta', border: '#ffffff', probability: 0.03 },
             'special': { points: 10, time: 10, color: '#ff00ff', border: '#ffffff', probability: 0 },
-            'dark': { points: 0, time: -10, color: '#000000', border: '#ff0000', probability: 0 }
+            'dark': { points: 0, time: -10, color: '#000000', border: '#ff0000', probability: 0 },
+            'giraffe': { points: 0, time: -3, color: '#ff9900', border: '#ff5500', probability: 0 }
         };
         
         const horseshoesHard = {
-            'bronze': { points: 1, time: 0, color: '#cd7f32', border: '#a56c2a', probability: 0.5 },
+            'bronze': { points: 1, time: 0, color: '#cd7f32', border: '#a56c2a', probability: 0.4 },
             'silver': { points: 2, time: 1, color: '#c0c0c0', border: '#a0a0a0', probability: 0.3 },
             'gold': { points: 3, time: 2, color: '#ffd700', border: '#d4af37', probability: 0.1 },
             'magic': { points: 5, time: 3, color: 'magenta', border: '#ffffff', probability: 0.05 },
             'special': { points: 10, time: 10, color: '#ff00ff', border: '#ffffff', probability: 0.02 },
-            'dark': { points: 0, time: -10, color: '#000000', border: '#ff0000', probability: 0.03 }
+            'dark': { points: 0, time: -10, color: '#000000', border: '#ff0000', probability: 0.03 },
+            'giraffe': { points: 0, time: -3, color: '#ff9900', border: '#ff5500', probability: 0.05 }
         };
         
         let currentHorseshoes = horseshoesEasy;
@@ -581,7 +887,6 @@
                 }
             }
             
-            // Генерация тона
             playTone(frequency, duration, type = 'square', volume = 0.3) {
                 if (!soundEnabled || !this.initialized) return;
                 
@@ -605,12 +910,10 @@
                 }
             }
             
-            // Звук клика
             playClick() {
                 this.playTone(330, 0.1, 'sine', 0.2);
             }
             
-            // Звук подковывания
             playHorseshoe(type) {
                 const frequencies = {
                     'bronze': [440],
@@ -618,7 +921,8 @@
                     'gold': [659.25, 783.99],
                     'magic': [1046.5, 1318.51],
                     'special': [1567.98, 2093],
-                    'dark': [110, 87.31] // Низкие частоты для темной лошади
+                    'dark': [110, 87.31],
+                    'giraffe': [220, 196, 165]
                 };
                 
                 const freq = frequencies[type] || frequencies['bronze'];
@@ -630,12 +934,10 @@
                 });
             }
             
-            // Звук появления лошади
             playHorse() {
                 this.playTone(196.00, 0.15, 'sine', 0.1);
             }
             
-            // Звук смешной лошади
             playCrazyHorse() {
                 const frequencies = [261.63, 329.63, 392.00, 523.25, 392.00, 329.63];
                 frequencies.forEach((freq, i) => {
@@ -645,7 +947,15 @@
                 });
             }
             
-            // Звук завершения игры
+            playGiraffe() {
+                const frequencies = [130.81, 164.81, 196.00, 246.94];
+                frequencies.forEach((freq, i) => {
+                    setTimeout(() => {
+                        this.playTone(freq, 0.2, 'sawtooth', 0.3);
+                    }, i * 150);
+                });
+            }
+            
             playGameOver() {
                 const frequencies = [523.25, 415.30, 349.23, 293.66, 246.94];
                 frequencies.forEach((freq, i) => {
@@ -655,7 +965,6 @@
                 });
             }
             
-            // Фоновая музыка
             playBackgroundMusic() {
                 if (!musicEnabled || !this.initialized) return;
                 
@@ -681,7 +990,6 @@
         
         const soundSystem = new SoundSystem();
         
-        // Функция для безопасного воспроизведения звука
         function playSound(soundFunction) {
             if (!soundEnabled) return;
             
@@ -701,7 +1009,81 @@
             }
         }
         
-        // ===== КОНЕЦ СИСТЕМЫ ЗВУКА =====
+        // ===== ФУНКЦИЯ ПОДЕЛИТЬСЯ =====
+        function shareResults() {
+            const text = `Я подковал ${score} животных в игре "Подковать лошадь"! 🐎\nСможешь побить мой рекорд?`;
+            
+            if (navigator.share) {
+                // Для мобильных устройств
+                navigator.share({
+                    title: 'Подковать лошадь',
+                    text: text,
+                    url: window.location.href
+                }).catch(() => {
+                    fallbackShare();
+                });
+            } else {
+                fallbackShare();
+            }
+        }
+        
+        function fallbackShare() {
+            const text = `Я подковал ${score} животных в игре "Подковать лошадь"! 🐎 Сможешь побить мой рекорд?`;
+            
+            // Копирование в буфер обмена
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Результат скопирован в буфер обмена! 📋\nПоделитесь им в соцсетях!');
+                }).catch(() => {
+                    prompt('Скопируйте этот текст чтобы поделиться:', text);
+                });
+            } else {
+                prompt('Скопируйте этот текст чтобы поделиться:', text);
+            }
+        }
+        
+        // ===== КОНЕЦ ФУНКЦИИ ПОДЕЛИТЬСЯ =====
+        
+        // Функция для определения мобильного устройства
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // Функция для определения ориентации
+        function checkOrientation() {
+            if (isMobileDevice()) {
+                if (window.innerHeight > window.innerWidth) {
+                    orientationWarning.style.display = 'flex';
+                    document.getElementById('game-container').style.display = 'none';
+                } else {
+                    orientationWarning.style.display = 'none';
+                    document.getElementById('game-container').style.display = 'block';
+                    updateCanvasSize();
+                }
+            }
+        }
+        
+        // Обновление размеров canvas
+        function updateCanvasSize() {
+            const container = document.getElementById('game-container');
+            
+            if (isMobileDevice() && window.innerWidth > window.innerHeight) {
+                canvasWidth = container.clientWidth;
+                canvasHeight = container.clientHeight;
+                groundLevel = canvasHeight * 0.7;
+            } else {
+                canvasWidth = Math.min(800, window.innerWidth - 20);
+                canvasHeight = Math.min(600, window.innerHeight - 20);
+                groundLevel = canvasHeight * 0.7;
+            }
+            
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            
+            if (gameActive && !gamePaused) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
         
         // Создание фона
         function createBackground() {
@@ -718,44 +1100,9 @@
             ctx.arc(canvasWidth - 50, 50, 30, 0, Math.PI * 2);
             ctx.fill();
             
-            // Облака
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(100, 80, 20, 0, Math.PI * 2);
-            ctx.arc(130, 70, 25, 0, Math.PI * 2);
-            ctx.arc(160, 85, 18, 0, Math.PI * 2);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.arc(300, 60, 22, 0, Math.PI * 2);
-            ctx.arc(330, 50, 28, 0, Math.PI * 2);
-            ctx.arc(360, 65, 20, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Горы
-            ctx.fillStyle = '#7e9e7e';
-            ctx.beginPath();
-            ctx.moveTo(0, groundLevel);
-            ctx.lineTo(canvasWidth * 0.2, groundLevel * 0.6);
-            ctx.lineTo(canvasWidth * 0.4, groundLevel);
-            ctx.fill();
-            
-            ctx.beginPath();
-            ctx.moveTo(canvasWidth * 0.3, groundLevel);
-            ctx.lineTo(canvasWidth * 0.5, groundLevel * 0.5);
-            ctx.lineTo(canvasWidth * 0.7, groundLevel);
-            ctx.fill();
-            
             // Трава
             ctx.fillStyle = '#2a8f2a';
             ctx.fillRect(0, groundLevel, canvasWidth, canvasHeight - groundLevel);
-            
-            // Трава (детали)
-            ctx.fillStyle = '#3ba33b';
-            for (let i = 0; i < canvasWidth; i += 8) {
-                const height = Math.random() * 10 + 5;
-                ctx.fillRect(i, groundLevel, 3, -height);
-            }
             
             // Забор
             ctx.fillStyle = '#8b4513';
@@ -764,96 +1111,68 @@
             }
             ctx.fillRect(0, groundLevel - 15, canvasWidth, 5);
             ctx.fillRect(0, groundLevel - 5, canvasWidth, 5);
-            
-            // Конюшня
-            ctx.fillStyle = '#a52a2a';
-            ctx.fillRect(50, groundLevel - 100, 120, 100);
-            ctx.fillStyle = '#8b0000';
-            ctx.beginPath();
-            ctx.moveTo(40, groundLevel - 100);
-            ctx.lineTo(110, groundLevel - 150);
-            ctx.lineTo(180, groundLevel - 100);
-            ctx.closePath();
-            ctx.fill();
-            
-            // Окно конюшни
-            ctx.fillStyle = '#fffed6';
-            ctx.fillRect(80, groundLevel - 80, 30, 25);
-            ctx.fillStyle = '#6ab7ff';
-            ctx.fillRect(82, groundLevel - 78, 26, 21);
-            
-            // Дверь конюшни
-            ctx.fillStyle = '#5d4037';
-            ctx.fillRect(120, groundLevel - 40, 40, 40);
-            
-            // Деревья
-            ctx.fillStyle = '#2d6a2d';
-            for (let i = 0; i < 5; i++) {
-                const x = canvasWidth - 100 - i * 60;
-                const y = groundLevel - 80;
-                
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x - 30, y + 80);
-                ctx.lineTo(x + 30, y + 80);
-                ctx.closePath();
-                ctx.fill();
-                
-                ctx.fillStyle = '#5d4037';
-                ctx.fillRect(x - 5, groundLevel, 10, 20);
-                ctx.fillStyle = '#2d6a2d';
-            }
         }
         
-        // Класс лошади (оригинальный стиль из файла 3.html)
-        class Horse {
-            constructor(type = 'normal') {
-                this.width = 90;
-                this.height = 70;
+        // Базовый класс животного
+        class Animal {
+            constructor(type, width, height) {
                 this.type = type;
-                
-                // Лошади появляются только на земле
-                const minY = groundLevel - this.height;
-                const maxY = canvasHeight - this.height;
-                
-                if (type === 'special') {
-                    // Смешная лошадь появляется справа и бежит налево
-                    this.x = canvasWidth;
-                    this.speed = -4;
-                    this.y = Math.random() * (maxY - minY) + minY;
-                    this.color = '#ff00ff';
-                    this.specialAnimation = 0;
-                    this.isSpecial = true;
-                } else if (type === 'dark') {
-                    // Тёмная лошадь появляется слева и бежит направо
-                    this.x = -this.width;
-                    this.speed = currentLevel === 1 ? Math.random() * 2 + 2 : Math.random() * 3 + 3;
-                    this.y = Math.random() * (maxY - minY) + minY;
-                    this.color = '#000000';
-                    this.isDark = true;
-                } else {
-                    // Обычная лошадь
-                    this.x = -this.width;
-                    this.speed = currentLevel === 1 ? Math.random() * 2 + 1 : Math.random() * 3 + 1.5;
-                    this.y = Math.random() * (maxY - minY) + minY;
-                    this.color = this.getRandomColor();
-                    this.isSpecial = false;
-                    this.isDark = false;
-                }
-                
+                this.width = width;
+                this.height = height;
                 this.isShod = false;
                 this.frame = 0;
                 this.animationSpeed = Math.floor(Math.random() * 5) + 5;
                 this.animationCounter = 0;
                 
-                // Воспроизводим звук появления лошади
-                playSound(() => {
-                    if (this.isSpecial) {
-                        soundSystem.playCrazyHorse();
-                    } else {
-                        soundSystem.playHorse();
-                    }
-                });
+                const minY = groundLevel - this.height;
+                const maxY = canvasHeight - this.height;
+                this.y = Math.random() * (maxY - minY) + minY;
+            }
+            
+            update() {
+                this.animationCounter++;
+                if (this.animationCounter >= this.animationSpeed) {
+                    this.frame = (this.frame + 1) % 4;
+                    this.animationCounter = 0;
+                }
+                
+                return this.x > canvasWidth || this.x < -this.width;
+            }
+            
+            isClicked(mouseX, mouseY) {
+                return mouseX >= this.x && 
+                       mouseX <= this.x + this.width && 
+                       mouseY >= this.y && 
+                       mouseY <= this.y + this.height;
+            }
+        }
+        
+        // Класс лошади
+        class Horse extends Animal {
+            constructor(type = 'normal') {
+                super(type, 90, 70);
+                
+                if (type === 'special') {
+                    this.x = canvasWidth;
+                    this.speed = -4;
+                    this.color = '#ff00ff';
+                    this.specialAnimation = 0;
+                    this.isSpecial = true;
+                    playSound(() => soundSystem.playCrazyHorse());
+                } else if (type === 'dark') {
+                    this.x = -this.width;
+                    this.speed = currentLevel === 1 ? Math.random() * 2 + 2 : Math.random() * 3 + 3;
+                    this.color = '#000000';
+                    this.isDark = true;
+                    playSound(() => soundSystem.playHorse());
+                } else {
+                    this.x = -this.width;
+                    this.speed = currentLevel === 1 ? Math.random() * 2 + 1 : Math.random() * 3 + 1.5;
+                    this.color = this.getRandomColor();
+                    this.isSpecial = false;
+                    this.isDark = false;
+                    playSound(() => soundSystem.playHorse());
+                }
             }
             
             getRandomColor() {
@@ -883,13 +1202,7 @@
                     this.x += this.speed;
                 }
                 
-                this.animationCounter++;
-                if (this.animationCounter >= this.animationSpeed) {
-                    this.frame = (this.frame + 1) % 4;
-                    this.animationCounter = 0;
-                }
-                
-                return this.x > canvasWidth || this.x < -this.width;
+                return super.update();
             }
             
             draw() {
@@ -903,31 +1216,24 @@
             }
             
             drawNormalHorse() {
-                // Тело лошади
                 ctx.fillStyle = this.color;
                 this.drawHorseBody();
                 
-                // Грива и хвост
                 ctx.fillStyle = '#000';
                 this.drawManeAndTail();
                 
-                // Ноги
                 ctx.fillStyle = '#000';
                 this.drawLegs();
                 
-                // Глаз
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(this.x + 70, this.y + 20, 4, 4);
                 ctx.fillStyle = '#000';
                 ctx.fillRect(this.x + 72, this.y + 21, 2, 2);
                 
-                // Ноздря
                 ctx.fillRect(this.x + 80, this.y + 25, 2, 2);
                 
-                // Ухо
                 ctx.fillRect(this.x + 75, this.y + 10, 5, 5);
                 
-                // Подкова, если подкована
                 if (this.isShod) {
                     ctx.fillStyle = '#c0c0c0';
                     ctx.fillRect(this.x + 20, this.y + 55, 12, 4);
@@ -938,104 +1244,81 @@
             drawSpecialHorse() {
                 const bounce = Math.sin(this.specialAnimation) * 5;
                 
-                // Тело лошади (розовое)
                 ctx.fillStyle = this.color;
                 this.drawHorseBody();
                 
-                // Грива и хвост (желтые)
                 ctx.fillStyle = '#ffd700';
                 this.drawManeAndTail();
                 
-                // Ноги
                 ctx.fillStyle = '#000';
                 this.drawLegs();
                 
-                // Глаз (безумный)
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(this.x + 70, this.y + 20 + bounce, 6, 6);
                 ctx.fillStyle = '#000';
                 ctx.fillRect(this.x + 73, this.y + 22 + bounce, 2, 2);
                 ctx.fillRect(this.x + 70, this.y + 20 + bounce, 2, 2);
                 
-                // Улыбка (смешная)
                 ctx.fillStyle = '#000';
                 for (let i = 0; i < 5; i++) {
                     ctx.fillRect(this.x + 75 + i*2, this.y + 30 + bounce, 2, 2);
                 }
                 
-                // Язык (красный)
                 ctx.fillStyle = '#ff0000';
                 ctx.fillRect(this.x + 80, this.y + 32 + bounce, 4, 2);
                 
-                // Подкова, если подкована
                 if (this.isShod) {
                     ctx.fillStyle = '#ffd700';
                     ctx.fillRect(this.x + 20, this.y + 55 + bounce, 15, 5);
                     ctx.fillRect(this.x + 55, this.y + 55 + bounce, 15, 5);
                 }
                 
-                // Специальный индикатор
                 ctx.fillStyle = '#ff00ff';
                 ctx.fillRect(this.x + 5, this.y - 15 + bounce, 6, 6);
             }
             
             drawDarkHorse() {
-                // Тело лошади (черное)
                 ctx.fillStyle = this.color;
                 this.drawHorseBody();
                 
-                // Грива и хвост (красные)
                 ctx.fillStyle = '#ff0000';
                 this.drawManeAndTail();
                 
-                // Ноги
                 ctx.fillStyle = '#333';
                 this.drawLegs();
                 
-                // Глаз (красный)
                 ctx.fillStyle = '#ff0000';
                 ctx.fillRect(this.x + 70, this.y + 20, 6, 6);
                 ctx.fillStyle = '#000';
                 ctx.fillRect(this.x + 72, this.y + 22, 2, 2);
                 
-                // Ноздря (красная)
                 ctx.fillStyle = '#ff0000';
                 ctx.fillRect(this.x + 80, this.y + 25, 3, 3);
                 
-                // Ухо
                 ctx.fillStyle = '#000';
                 ctx.fillRect(this.x + 75, this.y + 10, 5, 5);
                 
-                // Подкова, если подкована (красная)
                 if (this.isShod) {
                     ctx.fillStyle = '#ff0000';
                     ctx.fillRect(this.x + 20, this.y + 55, 15, 5);
                     ctx.fillRect(this.x + 55, this.y + 55, 15, 5);
                 }
                 
-                // Индикатор темной лошади
                 ctx.fillStyle = '#ff0000';
                 ctx.fillRect(this.x + 5, this.y - 15, 6, 6);
             }
             
             drawHorseBody() {
-                // Тело
                 ctx.fillRect(this.x + 20, this.y + 25, 50, 25);
-                
-                // Шея
                 ctx.fillRect(this.x + 70, this.y + 15, 15, 15);
-                
-                // Голова
                 ctx.fillRect(this.x + 85, this.y + 10, 15, 20);
             }
             
             drawManeAndTail() {
-                // Грива
                 for (let i = 0; i < 5; i++) {
                     ctx.fillRect(this.x + 70 + i*3, this.y + 5, 2, 15);
                 }
                 
-                // Хвост
                 for (let i = 0; i < 4; i++) {
                     ctx.fillRect(this.x + 20, this.y + 10 + i*5, 8, 2);
                 }
@@ -1054,13 +1337,6 @@
                 }
             }
             
-            isClicked(mouseX, mouseY) {
-                return mouseX >= this.x && 
-                       mouseX <= this.x + this.width && 
-                       mouseY >= this.y && 
-                       mouseY <= this.y + this.height;
-            }
-            
             getHorseshoeType() {
                 if (this.isSpecial) return 'special';
                 if (this.isDark) return 'dark';
@@ -1074,6 +1350,95 @@
                 }
                 
                 return 'bronze';
+            }
+        }
+        
+        // Класс жирафа
+        class Giraffe extends Animal {
+            constructor() {
+                super('giraffe', 60, 120);
+                this.x = -this.width;
+                this.speed = currentLevel === 1 ? Math.random() * 1.5 + 1 : Math.random() * 2 + 1.5;
+                this.color = '#ff9900';
+                this.neckAnimation = 0;
+                this.patternColor = '#ff5500';
+                playSound(() => soundSystem.playGiraffe());
+            }
+            
+            update() {
+                this.x += this.speed;
+                this.neckAnimation += 0.1;
+                return super.update();
+            }
+            
+            draw() {
+                // Тело
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x + 10, this.y + 60, 40, 30);
+                
+                // Ноги
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x + 15, this.y + 90, 5, 30);
+                ctx.fillRect(this.x + 25, this.y + 90, 5, 30);
+                ctx.fillRect(this.x + 40, this.y + 90, 5, 30);
+                ctx.fillRect(this.x + 50, this.y + 90, 5, 30);
+                
+                // Шея (с анимацией)
+                ctx.save();
+                ctx.translate(this.x + 30, this.y + 50);
+                ctx.rotate(Math.sin(this.neckAnimation) * 0.1);
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-5, -50, 10, 50);
+                
+                // Пятна на шее
+                ctx.fillStyle = this.patternColor;
+                ctx.fillRect(-3, -40, 6, 8);
+                ctx.fillRect(-4, -25, 8, 6);
+                ctx.fillRect(-3, -10, 6, 7);
+                
+                // Голова
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-8, -60, 16, 15);
+                
+                // Глаз
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(-4, -55, 4, 4);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-2, -53, 2, 2);
+                
+                // Рожки
+                ctx.fillStyle = this.patternColor;
+                ctx.fillRect(-6, -65, 3, 5);
+                ctx.fillRect(3, -65, 3, 5);
+                
+                // Уши
+                ctx.fillStyle = this.color;
+                ctx.fillRect(-10, -60, 3, 5);
+                ctx.fillRect(7, -60, 3, 5);
+                
+                ctx.restore();
+                
+                // Пятна на теле
+                ctx.fillStyle = this.patternColor;
+                ctx.fillRect(this.x + 15, this.y + 65, 8, 6);
+                ctx.fillRect(this.x + 35, this.y + 70, 7, 5);
+                ctx.fillRect(this.x + 20, this.y + 80, 6, 7);
+                
+                // Хвост
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x + 5, this.y + 65, 8, 3);
+                ctx.fillRect(this.x + 2, this.y + 63, 3, 3);
+                
+                // Подкова, если подкована
+                if (this.isShod) {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.fillRect(this.x + 20, this.y + 85, 12, 4);
+                    ctx.fillRect(this.x + 40, this.y + 85, 12, 4);
+                }
+            }
+            
+            getHorseshoeType() {
+                return 'giraffe';
             }
         }
         
@@ -1112,11 +1477,6 @@
             }
             
             hexToRgb(hex) {
-                const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-                hex = hex.replace(shorthandRegex, function(m, r, g, b) {
-                    return r + r + g + g + b + b;
-                });
-
                 const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
                 return result ? 
                     `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` 
@@ -1127,7 +1487,7 @@
         // Функция для создания специальной лошади
         function createSpecialHorse() {
             if (!specialHorseActive) {
-                horses.push(new Horse('special'));
+                animals.push(new Horse('special'));
                 specialHorseActive = true;
                 specialHorseIndicator.style.display = 'block';
                 
@@ -1141,14 +1501,29 @@
         
         // Функция для создания темной лошади
         function createDarkHorse() {
-            if (!darkHorseActive && currentLevel === 2) {
-                horses.push(new Horse('dark'));
+            if (!darkHorseActive) {
+                animals.push(new Horse('dark'));
                 darkHorseActive = true;
                 darkHorseIndicator.style.display = 'block';
                 
                 setTimeout(() => {
                     if (darkHorseActive) {
                         darkHorseIndicator.style.display = 'none';
+                    }
+                }, 5000);
+            }
+        }
+        
+        // Функция для создания жирафа
+        function createGiraffe() {
+            if (!giraffeActive) {
+                animals.push(new Giraffe());
+                giraffeActive = true;
+                giraffeIndicator.style.display = 'block';
+                
+                setTimeout(() => {
+                    if (giraffeActive) {
+                        giraffeIndicator.style.display = 'none';
                     }
                 }, 5000);
             }
@@ -1170,14 +1545,17 @@
         function initGame() {
             score = 0;
             timeLeft = 30;
-            horses = [];
+            animals = [];
             activeHorseshoes = [];
             specialHorseActive = false;
             darkHorseActive = false;
+            giraffeActive = false;
             specialHorseTimer = 0;
             darkHorseTimer = 0;
+            giraffeTimer = 0;
             specialHorseIndicator.style.display = 'none';
             darkHorseIndicator.style.display = 'none';
+            giraffeIndicator.style.display = 'none';
             
             scoreDisplay.textContent = `Подковано: ${score}`;
             timerDisplay.textContent = `Время: ${timeLeft}`;
@@ -1203,20 +1581,25 @@
                         timerDisplay.style.color = '#ff0000';
                     }
                     
-                    // Таймер для специальных лошадей
+                    // Таймер для специальных животных
                     specialHorseTimer++;
                     if (specialHorseTimer >= 15 && !specialHorseActive && !gamePaused) {
                         specialHorseTimer = 0;
                         createSpecialHorse();
                     }
                     
-                    // Таймер для темных лошадей (только на 2 уровне)
-                    if (currentLevel === 2) {
-                        darkHorseTimer++;
-                        if (darkHorseTimer >= 20 && !darkHorseActive && !gamePaused) {
-                            darkHorseTimer = 0;
-                            createDarkHorse();
-                        }
+                    // Таймер для темных лошадей
+                    darkHorseTimer++;
+                    if (darkHorseTimer >= 20 && !darkHorseActive && !gamePaused) {
+                        darkHorseTimer = 0;
+                        createDarkHorse();
+                    }
+                    
+                    // Таймер для жирафов
+                    giraffeTimer++;
+                    if (giraffeTimer >= 25 && !giraffeActive && !gamePaused) {
+                        giraffeTimer = 0;
+                        createGiraffe();
                     }
                 } else if (timeLeft <= 0) {
                     endGame();
@@ -1227,10 +1610,10 @@
             clearInterval(horseSpawnInterval);
             horseSpawnInterval = setInterval(() => {
                 if (gameActive && !gamePaused) {
-                    horses.push(new Horse('normal'));
+                    animals.push(new Horse('normal'));
                     
-                    if (horses.length > 8) {
-                        horses.shift();
+                    if (animals.length > 8) {
+                        animals.shift();
                     }
                 }
             }, currentLevel === 1 ? 1200 : 900);
@@ -1253,14 +1636,14 @@
             // Очистка canvas и отрисовка фона
             createBackground();
             
-            // Обновляем и рисуем лошадей
-            for (let i = 0; i < horses.length; i++) {
-                const horse = horses[i];
-                if (horse.update()) {
-                    horses.splice(i, 1);
+            // Обновляем и рисуем животных
+            for (let i = 0; i < animals.length; i++) {
+                const animal = animals[i];
+                if (animal.update()) {
+                    animals.splice(i, 1);
                     i--;
                 } else {
-                    horse.draw();
+                    animal.draw();
                 }
             }
             
@@ -1280,7 +1663,7 @@
             }
         }
         
-        // Обработка клика по лошади
+        // Обработка клика по животному
         function handleClick(e) {
             if (!gameActive || gamePaused) return;
             
@@ -1292,11 +1675,11 @@
             const mouseX = (e.clientX - rect.left) * scaleX;
             const mouseY = (e.clientY - rect.top) * scaleY;
             
-            for (const horse of horses) {
-                if (!horse.isShod && horse.isClicked(mouseX, mouseY)) {
-                    horse.isShod = true;
+            for (const animal of animals) {
+                if (!animal.isShod && animal.isClicked(mouseX, mouseY)) {
+                    animal.isShod = true;
                     
-                    const horseshoeType = horse.getHorseshoeType();
+                    const horseshoeType = animal.getHorseshoeType();
                     const horseshoe = currentHorseshoes[horseshoeType];
                     
                     score += horseshoe.points;
@@ -1311,14 +1694,19 @@
                     // Воспроизводим звук подковывания
                     playSound(() => soundSystem.playHorseshoe(horseshoeType));
                     
-                    if (horse.isSpecial) {
+                    if (animal.isSpecial) {
                         specialHorseActive = false;
                         specialHorseIndicator.style.display = 'none';
                     }
                     
-                    if (horse.isDark) {
+                    if (animal.isDark) {
                         darkHorseActive = false;
                         darkHorseIndicator.style.display = 'none';
+                    }
+                    
+                    if (animal.type === 'giraffe') {
+                        giraffeActive = false;
+                        giraffeIndicator.style.display = 'none';
                     }
                     
                     activeHorseshoes.push(new HorseshoeEffect(mouseX, mouseY, horseshoeType));
@@ -1335,7 +1723,10 @@
             soundSystem.stopBackgroundMusic();
             playSound(() => soundSystem.playGameOver());
             
-            finalScoreDisplay.textContent = `Вы подковали: ${score} лошадей`;
+            finalTime = timeLeft;
+            finalScoreDisplay.textContent = `Вы подковали: ${score} животных`;
+            finalTimeDisplay.textContent = `Осталось времени: ${finalTime} сек`;
+            
             gameOverScreen.classList.remove('hidden');
         }
         
@@ -1378,13 +1769,20 @@
         
         // Обработчики событий
         canvas.addEventListener('click', handleClick);
+        canvas.addEventListener('touchstart', handleClick, { passive: true });
+        
         mobileTapBtn.addEventListener('click', () => {
-            // Симуляция тапа для мобильных устройств
             const event = new MouseEvent('click', {
                 clientX: canvas.width / 2,
                 clientY: canvas.height / 2
             });
             handleClick(event);
+        });
+        
+        splashStartButton.addEventListener('click', () => {
+            playSound(() => soundSystem.playClick());
+            splashScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
         });
         
         startButton.addEventListener('click', () => {
@@ -1419,6 +1817,11 @@
             initGame();
         });
         
+        shareBtn.addEventListener('click', () => {
+            playSound(() => soundSystem.playClick());
+            shareResults();
+        });
+        
         pauseBtn.addEventListener('click', togglePause);
         resumeBtn.addEventListener('click', togglePause);
         
@@ -1440,39 +1843,31 @@
         exitBtnPause.addEventListener('click', exitGame);
         exitBtnEnd.addEventListener('click', exitGame);
         
-        // Адаптивность для мобильных устройств
-        function handleResize() {
-            const container = document.getElementById('game-container');
-            const isMobile = window.innerWidth <= 768;
-            
-            if (isMobile) {
-                canvasWidth = container.clientWidth;
-                canvasHeight = container.clientHeight;
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-            } else {
-                canvasWidth = 800;
-                canvasHeight = 600;
-                canvas.width = canvasWidth;
-                canvas.height = canvasHeight;
-            }
-            
-            if (gameActive && !gamePaused) {
-                requestAnimationFrame(gameLoop);
-            }
-        }
-        
-        window.addEventListener('resize', handleResize);
-        handleResize();
-        
-        // Инициализация при загрузке
+        // Проверка ориентации при загрузке и изменении размера
         window.addEventListener('load', () => {
-            // Установка размеров canvas
-            canvas.width = canvasWidth;
-            canvas.height = canvasHeight;
-            
-            // Инициализация звуковой системы
+            updateCanvasSize();
+            checkOrientation();
             soundSystem.init();
+            
+            // Автоматический переход с заставки через 5 секунд
+            setTimeout(() => {
+                if (splashScreen.style.display !== 'none') {
+                    splashScreen.classList.add('hidden');
+                    startScreen.classList.remove('hidden');
+                }
+            }, 5000);
+        });
+        
+        window.addEventListener('resize', () => {
+            updateCanvasSize();
+            checkOrientation();
+        });
+        
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => {
+                updateCanvasSize();
+                checkOrientation();
+            }, 300);
         });
         
         // Инициализация звука при первом взаимодействии
